@@ -1,0 +1,11 @@
+[package]
+name = "sabani"
+version = "0.1.0"
+edition = "2024"
+authors = ["puripuri2100"]
+
+[workspace]
+members = ["sabani_core"]
+
+[dependencies]
+sabani_core = {path = "./sabani_core"}
