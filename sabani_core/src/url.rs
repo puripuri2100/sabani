@@ -1,4 +1,6 @@
+#[cfg(feature = "wasabi")]
 use alloc::string::{String, ToString};
+#[cfg(feature = "wasabi")]
 use alloc::vec::Vec;
 
 // url scheme: http://<host>:<port>/<path>?<searchpart>
