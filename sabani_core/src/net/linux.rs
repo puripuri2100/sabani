@@ -1,6 +1,7 @@
+use super::super::error::SabaniError;
 use std::process::Command;
 
-pub fn lookup_host(url: &String) -> Vec<super::IPAddr> {
+pub fn lookup_host(url: &String) -> Result<Vec<super::IPAddr>, SabaniError> {
   let output = Command::new("nslookup").args([url]).output();
   match output {
     Ok(output) => {
@@ -20,8 +21,8 @@ pub fn lookup_host(url: &String) -> Vec<super::IPAddr> {
           v.push(addr)
         }
       }
-      v
+      Ok(v)
     }
-    Err(_) => Vec::new(),
+    Err(_) => Err(SabaniError::Network("Failed to run nslookup".to_string())),
   }
 }

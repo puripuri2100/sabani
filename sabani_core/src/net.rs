@@ -15,6 +15,9 @@ mod mac;
 #[cfg(feature = "wasabi")]
 mod wasabi;
 
+#[cfg(not(feature = "wasabi"))]
+use super::error::SabaniError;
+
 #[derive(Clone)]
 pub struct IPAddr {
   addr: String,
@@ -29,7 +32,7 @@ impl IPAddr {
     self.addr.clone()
   }
 
-  pub fn lookup_host(url: &String) -> Vec<Self> {
+  pub fn lookup_host(url: &String) -> Result<Vec<Self>, SabaniError> {
     #[cfg(feature = "linux")]
     let res = linux::lookup_host(url);
 
@@ -51,9 +54,36 @@ mod tests {
   use super::*;
 
   #[test]
-  fn check_example_com() {
-    let addr_lst = IPAddr::lookup_host(&"example.com".to_string());
-    let is_ok = addr_lst.iter().any(|addr| addr.get() == "23.192.228.80");
+  fn check_localhost() {
+    let addr_lst = IPAddr::lookup_host(&"localhost".to_string()).unwrap();
+    let is_ok = addr_lst.iter().any(|addr| addr.get() == "127.0.0.1");
     assert!(is_ok)
+  }
+}
+
+pub struct HttpClient {}
+
+impl HttpClient {
+  pub fn new() -> Self {
+    Self {}
+  }
+
+  pub fn get(&self, host: String, port: u16, path: String) -> Result<HttpResponse, SabaniError> {
+    let ips = match IPAddr::lookup_host(&host) {
+      Ok(ips) => ips,
+      Err(e) => {
+        return Err(SabaniError::Network(format!(
+          "Faild to find IP address: {:#?}",
+          e
+        )));
+      }
+    };
+
+    if ips.len() < 1 {
+      return Err(SabaniError::Network(
+        "Failed to find IP addresses".to_string(),
+      ));
+    }
+    todo!()
   }
 }
