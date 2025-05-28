@@ -17,9 +17,12 @@ use std::error::Error;
 #[cfg(not(feature = "wasabi"))]
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SabaniError {
   Network(String),
+  UnexpectedInput(String),
+  InvalidUI(String),
+  Other(String),
 }
 
 impl Error for SabaniError {}
@@ -28,6 +31,9 @@ impl fmt::Display for SabaniError {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     match self {
       SabaniError::Network(msg) => write!(f, "The network error: \"{msg}\""),
+      SabaniError::UnexpectedInput(msg) => write!(f, "The unexpected input error: \"{msg}\""),
+      SabaniError::InvalidUI(msg) => write!(f, "The invalid UI error: \"{msg}\""),
+      SabaniError::Other(msg) => write!(f, "The other error: \"{msg}\""),
     }
   }
 }
