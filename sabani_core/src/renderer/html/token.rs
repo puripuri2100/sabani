@@ -90,6 +90,11 @@ impl HtmlTokenizer {
     c
   }
 
+  fn reconsume_input(&mut self) -> char {
+    self.reconsume = false;
+    self.input[self.pos - 1]
+  }
+
   fn create_tag(&mut self, start_tag_token: bool) {
     if start_tag_token {
       self.latest_token = Some(HtmlToken::StartTag {
@@ -183,12 +188,16 @@ impl Iterator for HtmlTokenizer {
   type Item = HtmlToken;
 
   fn next(&mut self) -> Option<Self::Item> {
-    if self.is_eof() {
+    if self.pos >= self.input.len() {
       return None;
     }
 
     loop {
-      let c = self.consume_next_input();
+      let c = match self.reconsume {
+        true => self.reconsume_input(),
+        false => self.consume_next_input(),
+      };
+
       match self.state {
         State::Data => {
           if c == '<' {
@@ -304,6 +313,7 @@ impl Iterator for HtmlTokenizer {
 
           if c == '/' {
             self.state = State::SelfClosingStartTag;
+            continue;
           }
 
           if c == '=' {
@@ -341,7 +351,7 @@ impl Iterator for HtmlTokenizer {
           }
 
           self.reconsume = true;
-          self.state = State::AfterAttributeValueQuoted;
+          self.state = State::AttributeValueUnquoted;
         }
 
         State::AttributeValueDoubleQuoted => {
@@ -536,7 +546,7 @@ mod tests {
     attr1.add_char('c', true);
     attr1.add_char('l', true);
     attr1.add_char('a', true);
-    attr1.add_char('a', true);
+    attr1.add_char('s', true);
     attr1.add_char('s', true);
     attr1.add_char('A', false);
 
